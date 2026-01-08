@@ -1,0 +1,7 @@
+powershell
+
+
+python -m venv venv
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\venv\Scripts\activate
+poetry run python main.py --mode test_questions

@@ -666,24 +666,34 @@ if __name__ == "__main__":
     ], "Invalid run mode"
 
     template_bot = SpringTemplateBot2026(
-        research_reports_per_question=1,
-        predictions_per_research_report=5,
-        use_research_summary_to_forecast=False,
-        publish_reports_to_metaculus=True,
-        folder_to_save_reports_to=None,
-        skip_previously_forecasted_questions=True,
-        extra_metadata_in_explanation=True,
-        # llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
-        #     "default": GeneralLlm(
-        #         model="openrouter/openai/gpt-4o", # "anthropic/claude-sonnet-4-20250514", etc (see docs for litellm)
-        #         temperature=0.3,
-        #         timeout=40,
-        #         allowed_tries=2,
-        #     ),
-        #     "summarizer": "openai/gpt-4o-mini",
-        #     "researcher": "asknews/news-summaries",
-        #     "parser": "openai/gpt-4o-mini",
-        # },
+            research_reports_per_question=1,
+            predictions_per_research_report=5,
+            use_research_summary_to_forecast=False,
+            publish_reports_to_metaculus=True,
+            folder_to_save_reports_to=None,
+            skip_previously_forecasted_questions=True,
+            extra_metadata_in_explanation=True,
+            llms={  # Modified for free tier - reduced max_tokens
+                "default": GeneralLlm(
+                    model="openrouter/openai/gpt-4o-mini",  # Cheaper model
+                    temperature=0.3,
+                    timeout=60,
+                    allowed_tries=2,
+                    max_tokens=3500,  # REDUCED for free tier
+                ),
+                "summarizer": GeneralLlm(
+                    model="openrouter/openai/gpt-4o-mini",
+                    max_tokens=3500,  # REDUCED for free tier
+                ),
+                "researcher": GeneralLlm(
+                    model="openrouter/perplexity/sonar",
+                    max_tokens=3500,  # REDUCED for free tier
+                ),
+                "parser": GeneralLlm(
+                    model="openrouter/openai/gpt-4o-mini",
+                    max_tokens=2000,  # Parser needs less
+                ),
+            },
     )
 
     client = MetaculusClient()
@@ -712,10 +722,11 @@ if __name__ == "__main__":
     elif run_mode == "test_questions":
         # Example questions are a good way to test the bot's performance on a single question
         EXAMPLE_QUESTIONS = [
-            "https://www.metaculus.com/questions/578/human-extinction-by-2100/",  # Human Extinction - Binary
-            "https://www.metaculus.com/questions/14333/age-of-oldest-human-as-of-2100/",  # Age of Oldest Human - Numeric
-            "https://www.metaculus.com/questions/22427/number-of-new-leading-ai-labs/",  # Number of New Leading AI Labs - Multiple Choice
-            "https://www.metaculus.com/c/diffusion-community/38880/how-many-us-labor-strikes-due-to-ai-in-2029/",  # Number of US Labor Strikes Due to AI in 2029 - Discrete
+            "https://www.metaculus.com/questions/41497/will-sam-hammond-win-his-bet-with-john-luttig-about-gdp-growth/"
+            # "https://www.metaculus.com/questions/578/human-extinction-by-2100/",  # Human Extinction - Binary
+            # "https://www.metaculus.com/questions/14333/age-of-oldest-human-as-of-2100/",  # Age of Oldest Human - Numeric
+            # "https://www.metaculus.com/questions/22427/number-of-new-leading-ai-labs/",  # Number of New Leading AI Labs - Multiple Choice
+            # "https://www.metaculus.com/c/diffusion-community/38880/how-many-us-labor-strikes-due-to-ai-in-2029/",  # Number of US Labor Strikes Due to AI in 2029 - Discrete
         ]
         template_bot.skip_previously_forecasted_questions = False
         questions = [
