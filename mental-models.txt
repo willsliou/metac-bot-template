@@ -1,0 +1,40 @@
+Oil
+Rank,Country,% of World Supply,Key Development in 2026
+1,United States,22%,The Permian Basin (TX/NM) now accounts for 50% of total U.S. output.
+2,Saudi Arabia,11%,"Maintaining ""spare capacity"" to prevent a total price collapse."
+3,Russia,11%,"Shifting almost all exports to China and India via a ""shadow fleet."""
+4,Canada,6%,Record output following the expansion of the Trans Mountain pipeline.
+5,Guyana,~2%,The fastest-growing producer; will hit 1M barrels/day by late 2026.
+
+
+
+
+
+
+Raw Minerals
+1. Mining (The Raw Ore)
+Copper mining is relatively spread out, but three countries dominate:
+
+Chile (23%): The heavy hitter.
+
+DRC (14%): The fastest grower, but plagued by civil instability.
+
+Peru (11%): Facing frequent protests at major mines like Las Bambas.
+
+
+China Refining Ore
+Mineral,China's Control of Refining,"The ""Second-Order"" Impact"
+Rare Earths,86%,Used in EV motors and F-35 fighter jet magnets.
+Cobalt,71%,Vital for high-density phone and laptop batteries.
+Lithium,61%,"The ""White Gold"" of the EV era."
+Copper,45%,The chokepoint. Every wind turbine and AI data center needs Chinese-refined copper.
+
+
+
+
+
+
+
+The Fossil Sphere: Led by the U.S., which uses its massive oil/gas production and the recent capture of Venezuela's reserves to keep energy prices low and maintain geopolitical leverage.
+
+The Mineral Sphere: Led by China, which has spent 20 years building the factories that turn raw "dirt" into the copper and lithium required for the future.

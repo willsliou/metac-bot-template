@@ -6,6 +6,15 @@ import dotenv
 from typing import Literal
 
 
+# Data 102 Enhanced Forecasting (optional - gracefully degrades if not available)
+try:
+    from data102_forecasting import ConcentrationCalibrator
+    DATA102_AVAILABLE = True
+except ImportError:
+    DATA102_AVAILABLE = False
+    logging.warning("data102_forecasting.py not found - running without enhancements")
+
+
 from forecasting_tools import (
     AskNewsSearcher,
     BinaryQuestion,
@@ -168,6 +177,8 @@ class SpringTemplateBot2026(ForecastBot):
                 research = ""
             else:
                 research = await self.get_llm("researcher", "llm").invoke(prompt)
+            # Cache research for Data 102 calibration
+            question._research_cache = research
             logger.info(f"Found Research for URL {question.page_url}:\n{research}")
             return research
 
@@ -218,20 +229,63 @@ class SpringTemplateBot2026(ForecastBot):
         question: BinaryQuestion,
         prompt: str,
     ) -> ReasonedPrediction[float]:
+        # Get initial reasoning and prediction from LLM
         reasoning = await self.get_llm("default", "llm").invoke(prompt)
         logger.info(f"Reasoning for URL {question.page_url}: {reasoning}")
+        
+        # Parse initial prediction
         binary_prediction: BinaryPrediction = await structure_output(
             reasoning,
             BinaryPrediction,
             model=self.get_llm("parser", "llm"),
             num_validation_samples=self._structure_output_validation_samples,
         )
-        decimal_pred = max(0.01, min(0.99, binary_prediction.prediction_in_decimal))
+        raw_prediction = max(0.01, min(0.99, binary_prediction.prediction_in_decimal))
+        
+        # ========== DATA 102 ENHANCEMENTS ==========
+        # Apply statistical calibration to improve accuracy
+        final_prediction = raw_prediction
+        
+        if DATA102_AVAILABLE:
+            try:
+                # Initialize calibrator
+                calibrator = ConcentrationCalibrator()
+                
+                # Estimate sample size from research length
+                research = getattr(question, '_research_cache', '')
+                sample_size = max(5, len([p for p in research.split('\n') if p.strip()]))
+                
+                # Apply concentration inequality calibration
+                calibrated_prediction = calibrator.calibrate_prediction(
+                    raw_prediction, 
+                    sample_size,
+                    min_sample_for_confidence=20
+                )
+                
+                # Add calibration explanation to reasoning if adjustment is significant
+                if abs(calibrated_prediction - raw_prediction) > 0.02:  # >2% adjustment
+                    calibration_note = f"""
+
+--- DATA 102 CALIBRATION APPLIED ---
+Raw prediction: {raw_prediction:.1%}
+Sample size: {sample_size} evidence pieces
+Calibrated prediction: {calibrated_prediction:.1%}
+Reason: {"Small sample - shrunk toward 50% (uninformed prior)" if sample_size < 20 else "Large sample - high confidence maintained"}
+Hoeffding bound applied to account for sampling uncertainty.
+"""
+                    reasoning += calibration_note
+                
+                final_prediction = calibrated_prediction
+                logger.info(f"Data 102 calibration: {raw_prediction:.3f} -> {final_prediction:.3f}")
+                
+            except Exception as e:
+                logger.warning(f"Data 102 enhancement failed: {e}. Using raw prediction.")
+                final_prediction = raw_prediction
 
         logger.info(
-            f"Forecasted URL {question.page_url} with prediction: {decimal_pred}."
+            f"Forecasted URL {question.page_url} with prediction: {final_prediction}."
         )
-        return ReasonedPrediction(prediction_value=decimal_pred, reasoning=reasoning)
+        return ReasonedPrediction(prediction_value=final_prediction, reasoning=reasoning)
 
     ##################################### MULTIPLE CHOICE QUESTIONS #####################################
 
